@@ -170,3 +170,100 @@ Answer Bad::Solve(string taskFilename) {
 	fin.close();
 	return ans;
 }
+
+//результат проверки работы студента преподавателем
+class Result {
+public:
+	string studName; //ФИО студента
+	int correctAnsCount; //количество правильных ответов
+};
+
+//преподаватель
+class Teacher : public Person {
+private:
+	vector<Answer> queue; //очередь из работ студентов
+	vector<Result> res; //результаты проверки
+	vector<vector<double>> Solve(string taskFilename); //решения квадратных уравений (правильное)
+public:
+	void AddToQueue(Answer ans); //добавить работу в очередь
+	void ClearQueue(); //очистить очередь
+	void Check(string taskFilename); //проверка работ, находящихся в очереди
+	int EqCount(string taskFilename); //подсчет количества уравнений в задании 
+	void ShowResults(string taskFilename); //вывод результатов проверки
+};
+
+vector<vector<double>> Teacher::Solve(string taskFilename) {
+	vector<vector<double>> answers;
+	ifstream fin(taskFilename);
+	Equation eq = ReadEq(fin);
+	while (eq.isValid()) {
+		vector<double> sol = EqSolution(eq);
+		answers.push_back(sol);
+		eq = ReadEq(fin);
+	}
+	fin.close();
+	return answers;
+}
+
+void Teacher::AddToQueue(Answer ans) {
+	queue.push_back(ans);
+}
+
+void Teacher::ClearQueue() {
+	queue.clear();
+}
+
+void Teacher::Check(string taskFilename) {
+	res.clear();
+	vector<vector<double>> answers = Solve(taskFilename);
+
+	for (int i = 0; i < queue.size(); i++) {
+		Result studRes;
+		studRes.studName = queue[i].studName;
+		int correctCount = 0;
+		for (int j = 0; j < answers.size(); j++) {
+			if (queue[i].solutions[j] == answers[j]) {
+				correctCount++;
+			}
+		}
+		studRes.correctAnsCount = correctCount;
+		res.push_back(studRes);
+	}
+}
+
+int Teacher::EqCount(string taskFilename) {
+	ifstream fin(taskFilename);
+	int count = 0;
+	Equation eq = ReadEq(fin);
+	while (eq.isValid()) {
+		count++;
+		vector<double> sol = EqSolution(eq);
+		eq = ReadEq(fin);
+	}
+	fin.close();
+	return count;
+}
+
+void Teacher::ShowResults(string taskFilename) {
+	int eqCount = EqCount(taskFilename);
+	int nameWidth = 0;
+	int len;
+	for (int i = 0; i < res.size(); i++) {
+		len = res[i].studName.length();
+		if (len > nameWidth) {
+			nameWidth = len;
+		}
+	}
+
+	cout << std::setw(nameWidth) << "Name" << " | Result" << std::endl;
+	for (int i = 0; i < nameWidth + 10; i++) {
+		cout << "-";
+	}
+	for (int i = 0; i < res.size(); i++) {
+		cout << std::endl << std::setw(nameWidth) << res[i].studName << " | ";
+		cout << res[i].correctAnsCount << " / " << eqCount << std::endl;
+		for (int j = 0; j < nameWidth + 10; j++) {
+			cout << "-";
+		}
+	}
+}
