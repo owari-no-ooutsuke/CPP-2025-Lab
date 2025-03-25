@@ -291,3 +291,19 @@ vector<Student*> CreateStudents(int count) {
 	}
 	return students;
 }
+
+int main() {
+	string task = "eq_coeffs.txt";
+	Teacher t;
+	vector<Student*> students = CreateStudents(N);
+	for (int i = 0; i < N; i++) {
+		t.AddToQueue((*students[i]).Solve(task));
+	}
+	t.Check(task);
+	t.ShowResults(task);
+
+	for (int i = 0; i < N; i++) {
+		delete students[i];
+	}
+	return 0;
+}
